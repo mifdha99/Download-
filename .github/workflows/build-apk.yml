@@ -29,12 +29,24 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+      - name: Locate Android SDK
+        run: |
+          echo "ANDROID_HOME=${ANDROID_HOME:-/usr/local/lib/android/sdk}" >> "$GITHUB_ENV"
+          echo "${ANDROID_HOME:-/usr/local/lib/android/sdk}/platform-tools" >> "$GITHUB_PATH"
+          echo "${ANDROID_HOME:-/usr/local/lib/android/sdk}/cmdline-tools/latest/bin" >> "$GITHUB_PATH"
 
       - name: Install Android SDK Packages
         run: |
-          sdkmanager "platform-tools" "platforms;android-36" "build-tools;36.0.0"
+          SDKMANAGER="${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager"
+          if [ ! -f "$SDKMANAGER" ]; then
+            SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -name sdkmanager -type f | head -n 1)"
+          fi
+          if [ -z "$SDKMANAGER" ] || [ ! -f "$SDKMANAGER" ]; then
+            echo "ERROR: sdkmanager tidak ditemukan"
+            exit 1
+          fi
+          yes | "$SDKMANAGER" --licenses >/dev/null || true
+          "$SDKMANAGER" "platform-tools" "platforms;android-36" "build-tools;36.0.0"
 
       - name: Check Gradle Wrapper
         run: |
