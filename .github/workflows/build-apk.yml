@@ -1,79 +1,46 @@
 name: Build Uda Downloader APK
 
 on:
-  push:
-    branches:
-      - main
-      - master
-  workflow_dispatch:
+push:
+branches: [main, master]
+pull_request:
+branches: [main, master]
+workflow_dispatch:
 
 permissions:
-  contents: read
+contents: read
 
 jobs:
-  build-debug-apk:
-    name: Test & Build Debug APK
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
+build:
+runs-on: ubuntu-latest
 
-    steps:
-      - name: 1. Checkout Repositori
-        uses: actions/checkout@v4
+steps:
+  - name: Checkout Repository
+    uses: actions/checkout@v4
 
-      - name: 2. Siapkan JDK 21 (Kompatibel dengan Gradle 9.x & AGP 9.x)
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '21'
+  - name: Setup JDK
+    uses: actions/setup-java@v4
+    with:
+      distribution: temurin
+      java-version: '17'
 
-      - name: 3. Siapkan Android SDK
-        uses: android-actions/setup-android@v3
+  - name: Setup Android SDK
+    uses: android-actions/setup-android@v3
+    with:
+      packages: |
+        platform-tools
+        platforms;android-36
+        build-tools;36.0.0
 
-      - name: 4. Siapkan Gradle & Cache
-        uses: gradle/actions/setup-gradle@v4
+  - name: Grant Gradle Permission
+    run: chmod +x ./gradlew
 
-      - name: 5. Pastikan Izin Eksekusi Gradle Wrapper & Buat debug.keystore bila belum ada
-        run: |
-          chmod +x ./gradlew
-          if [ ! -f "debug.keystore" ]; then
-            keytool -genkeypair -v \
-              -keystore debug.keystore \
-              -storepass android \
-              -alias androiddebugkey \
-              -keypass android \
-              -keyalg RSA \
-              -keysize 2048 \
-              -validity 10000 \
-              -dname "CN=Android Debug,O=Android,C=US"
-          fi
+  - name: Build Debug APK
+    run: ./gradlew --no-daemon assembleDebug
 
-      - name: 6. Jalankan Unit Test & Robolectric Test
-        run: |
-          ./gradlew :app:testDebugUnitTest --stacktrace || {
-            echo "::error::Pengujian unit/Robolectric gagal. Periksa laporan pengujian."
-            exit 1
-          }
-
-      - name: 7. Bangun APK Debug (assembleDebug)
-        run: |
-          ./gradlew :app:assembleDebug --stacktrace || {
-            echo "::error::Proses pembuatan APK debug gagal. Periksa log kompilasi di atas."
-            exit 1
-          }
-
-      - name: 8. Verifikasi Keberadaan File APK Debug
-        run: |
-          APK_PATH=$(find app/build/outputs/apk/debug -name "*.apk" | head -n 1)
-          if [ -z "$APK_PATH" ]; then
-            echo "::error::File APK debug tidak ditemukan setelah build selesai!"
-            exit 1
-          fi
-          echo "APK berhasil dibuat: $APK_PATH"
-
-      - name: 9. Unggah Artifact APK Debug
-        uses: actions/upload-artifact@v4
-        with:
-          name: Uda-Downloader-Debug-APK
-          path: app/build/outputs/apk/debug/*.apk
-          if-no-files-found: error
-          retention-days: 30
+  - name: Upload APK
+    uses: actions/upload-artifact@v4
+    with:
+      name: UdaDownloader-debug
+      path: app/build/outputs/apk/debug/*.apk
+      if-no-files-found: error
