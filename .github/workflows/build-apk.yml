@@ -1,52 +1,55 @@
+
 name: Build Uda Downloader APK
 
 on:
-push:
-branches:
-- main
-- master
-pull_request:
-branches:
-- main
-- master
-workflow_dispatch:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
 
 permissions:
-contents: read
+  contents: read
 
 jobs:
-build:
-runs-on: ubuntu-latest
-steps:
-- name: Checkout Repository
-uses: actions/checkout@v4
+  build:
+    runs-on: ubuntu-latest
 
-  - name: Setup JDK
-    uses: actions/setup-java@v4
-    with:
-      distribution: temurin
-      java-version: '17'
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-  - name: Setup Android SDK
-    uses: android-actions/setup-android@v3
-    with:
-      packages: |
-        platform-tools
-        platforms;android-36
-        build-tools;36.0.0
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
 
-  - name: Check Gradle Wrapper
-    run: |
-      test -f gradlew
-      test -f gradle/wrapper/gradle-wrapper.jar
-      chmod +x gradlew
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: |
+            platform-tools
+            platforms;android-36
+            build-tools;36.0.0
 
-  - name: Build Debug APK
-    run: ./gradlew --no-daemon assembleDebug
+      - name: Check Gradle Wrapper
+        run: |
+          test -f gradlew
+          test -f gradle/wrapper/gradle-wrapper.jar
+          chmod +x gradlew
 
-  - name: Upload APK
-    uses: actions/upload-artifact@v4
-    with:
-      name: UdaDownloader-debug
-      path: app/build/outputs/apk/debug/*.apk
-      if-no-files-found: error
+      - name: Build Debug APK
+        run: ./gradlew --no-daemon assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: UdaDownloader-debug
+          path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          
