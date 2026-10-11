@@ -2,9 +2,13 @@ name: Build Uda Downloader APK
 
 on:
 push:
-branches: [main, master]
+branches:
+- main
+- master
 pull_request:
-branches: [main, master]
+branches:
+- main
+- master
 workflow_dispatch:
 
 permissions:
@@ -13,10 +17,9 @@ contents: read
 jobs:
 build:
 runs-on: ubuntu-latest
-
 steps:
-  - name: Checkout Repository
-    uses: actions/checkout@v4
+- name: Checkout Repository
+uses: actions/checkout@v4
 
   - name: Setup JDK
     uses: actions/setup-java@v4
@@ -32,8 +35,11 @@ steps:
         platforms;android-36
         build-tools;36.0.0
 
-  - name: Grant Gradle Permission
-    run: chmod +x ./gradlew
+  - name: Check Gradle Wrapper
+    run: |
+      test -f gradlew
+      test -f gradle/wrapper/gradle-wrapper.jar
+      chmod +x gradlew
 
   - name: Build Debug APK
     run: ./gradlew --no-daemon assembleDebug
