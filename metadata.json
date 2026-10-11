@@ -1,0 +1,6 @@
+{
+  "name": "Uda Downloader",
+  "description": "Manajer unduhan serbaguna Android dengan dukungan jeda/lanjutkan (HTTP Range), antrean pintar, multi-segmen opsional, pemulihan otomatis, dan penyimpanan MediaStore.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
